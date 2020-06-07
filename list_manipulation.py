@@ -87,3 +87,18 @@ def count_frequency(my_list):
     for items in my_list: 
         freq[items] = my_list.count(items) 
     return freq
+
+
+def break_list2chunks(lst, n):
+    """
+    Break a list into chunks of size N using list comprehension
+
+    Args:
+        lst (list): 1d list
+        n (int): How many elements each output list should have 
+    Returns:
+        list: 2D list
+    """
+    return [
+        lst[i * n:(i + 1) * n] for i in range((len(lst) + n - 1) // n )
+    ]
