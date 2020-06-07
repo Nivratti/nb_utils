@@ -25,9 +25,9 @@ def add_today_date_in_filename(file_name, format="%Y-%m-%d"):
         print("Error :", e)
         return file_name
 
-def check_or_create_folder(folder_name_with_path):
+def generate_folder(folder_name_with_path):
     """
-    * chech is folder exists 
+    * check is folder exists 
     * if exists or created  return folder name
     * if error occurs return false
     """
@@ -39,16 +39,13 @@ def check_or_create_folder(folder_name_with_path):
             return False
     return folder_name_with_path
 
-
-
-def create_or_get_today_date_log_folder(root_log_folder_withpath):
+def generate_today_date_log_folder(root_log_folder_withpath, exit_ok=True):
     """
     create today date log folder
     
     Keyword Arguments:
         root_log_folder {str} -- [description] (default: {"logs"})
     
-
     Returns:
         [type] -- [description]
     """  
@@ -81,3 +78,24 @@ def check_create_file_with_all_permission(file_name_with_path):
         return True
     else:
         return False
+
+def generate_filename(extension=".txt", base_folder=None):
+    """
+    Generate unique filename
+
+    Args:
+        extension (str, optional): Extension for filename. Defaults to "txt".
+        base_folder (str, optional): Base folder path. Defaults to None.
+    """
+    from text_processing import generate_unique_str
+    unique_str = generate_unique_str()
+
+    if not extension.startswith('.'):
+        extension = "." + extension
+
+    filename = unique_str + extension
+
+    if base_folder:
+        return os.path.join(base_folder, filename)
+    else:
+        return filename
