@@ -22,3 +22,13 @@ def is_float(value):
             return False
     else:
         return False
+
+
+def truncate_float(value, digits_after_point=2):
+    """
+    Truncate long float numbers
+    >>> truncate_float(1.1477784, 2)
+       1.14
+    """
+    pow_10 = 10 ** digits_after_point
+    return (float(int(value * pow_10))) / pow_10
