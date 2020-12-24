@@ -5,6 +5,45 @@ import cv2
 from PIL import Image, ImageFont, ImageDraw, ImageEnhance
 import numpy as np
 
+def read_image_cv2(filename, colorspace='RGB'):
+    try:
+        if colorspace == 'GRAY':
+            img = cv2.imread(filename, cv2.IMREAD_GRAYSCALE)
+        else:
+            img = cv2.imread(filename, cv2.IMREAD_UNCHANGED)
+
+        if colorspace == 'BGR':
+            pass
+
+        elif colorspace == 'RGB':
+            rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+            img = rgb
+
+        elif colorspace == 'HSV':
+            # Convert BGR to HSV
+            hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+            img = hsv
+
+        elif colorspace == 'HLS':
+            hls = cv2.cvtColor(img, cv2.COLOR_BGR2HLS)
+            # Get the L channel
+            # hls = hls[:,:,1]
+            img = hls
+
+        elif colorspace == 'YCrCb':
+            ycrbr = cv2.cvtColor(img, cv2.COLOR_BGR2YCrCb)
+            img = ycrbr
+        elif colorspace == 'LAB':
+            lab = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
+            img = lab
+        elif colorspace == 'YUV':
+            yuv = cv2.cvtColor(img, cv2.COLOR_BGR2YUV)
+            img = yuv
+        return img
+    except Exception as e:
+        print(f"Error in file .... {filename}")
+        print(e)
+        
 def read_image(image_path, method="PIL", colorspace='RGB'):
     """
     Read image from disk
