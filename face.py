@@ -308,3 +308,46 @@ def extract_faces_recursive_fulldir_multiprocess(
     # map multiple tasks
     result = process_map(extract_face_singlefile, lst_params , max_workers=10)
     return result
+
+
+def main():
+    # resize only -- tight crop
+    # source_dir  = "/content/train"
+    # dest_dir   = "/content/tight_cropped_resized_face__224x224" # "/content/tight_cropped_face"
+    # # separate_dir_save_resized = "/content/tight_cropped_resized_face__224x224"
+
+    # # make out dir if not exists
+    # os.makedirs(dest_dir, exist_ok=True)
+
+    # extract_faces_recursive_fulldir_multiprocess(
+    #     source_dir,
+    #     dest_dir,
+    #     resize=True,
+    #     new_size=(224, 224),
+    #     save_resized_separatly=False,
+    #     # separate_dir_save_resized=separate_dir_save_resized,
+    #     multiprocess=True, max_workers=5,
+    # )
+
+
+    ### with scaling -- loose face cropping
+    source_dir  = "/content/train"
+    dest_dir   = "/content/loose_cropped_face__resized_224x224__scaled_4" # separate_dir_save_resized = "/content/tight_cropped_resized_face__224x224"
+
+    # make out dir if not exists
+    os.makedirs(dest_dir, exist_ok=True)
+
+    image_cropper = CropImage()
+
+    result = extract_faces_recursive_fulldir_multiprocess(
+        source_dir,
+        dest_dir,
+        scale=True,
+        scale_factor=2,
+        image_cropper=image_cropper,
+        resize=True,
+        new_size=(224, 224),
+        save_resized_separatly=False,
+        # separate_dir_save_resized=separate_dir_save_resized,
+        multiprocess=True, max_workers=5,
+    )
