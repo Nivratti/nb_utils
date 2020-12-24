@@ -309,10 +309,41 @@ def extract_faces_recursive_fulldir_multiprocess(
         })
 
     max_workers = cpu_count(logical=True)
-    
+
     # map multiple tasks
     result = process_map(extract_face_singlefile, lst_params , max_workers=max_workers)
     return result
+
+def do_multiscale_face_extraction(source_dir, dest_dir, lst_scale_factor=[], target_size=(224, 224), max_workers=5):
+    """ 
+    Create multiscaled face cropping, resizing
+    """
+    # make out dir if not exists
+    os.makedirs(dest_dir, exist_ok=True)
+
+    image_cropper = CropImage()
+
+    results = []
+    for scale_factor in lst_scale_factor:
+        new_out_foler = f"{scale_factor}_{target_size[0]}x{target_size[0]}" # ex. 3_224x224
+
+        sub_dest_dir = os.path.join(dest_dir, new_out_foler)
+        os.makedirs(sub_dest_dir, exist_ok=True)
+
+        result = extract_faces_recusive_fulldir_multiprocess(
+            source_dir,
+            sub_dest_dir,
+            scale=True,
+            scale_factor=scale_factor,
+            image_cropper=image_cropper,
+            resize=True,
+            new_size=target_size,
+            save_resized_separatly=False,
+            # separate_dir_save_resized=separate_dir_save_resized,
+            multiprocess=True, max_workers=max_workers,
+        )
+        results.append(result)
+    return results
 
 
 def main():
