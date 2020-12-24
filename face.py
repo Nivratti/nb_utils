@@ -12,6 +12,9 @@ from operator import itemgetter
 from tqdm.notebook import tqdm
 from tqdm.contrib.concurrent import process_map # multi-process - tqdm>=4.42.0
 
+from psutil import cpu_count
+
+
 def extract_faces_from_image(image_array, face_boxes, required_size=(160, 160), convert_2_numpy=True):
     """
     Extract face region from image array
@@ -305,8 +308,10 @@ def extract_faces_recursive_fulldir_multiprocess(
             "save_resized_separatly": save_resized_separatly,
         })
 
+    max_workers = cpu_count(logical=True)
+    
     # map multiple tasks
-    result = process_map(extract_face_singlefile, lst_params , max_workers=10)
+    result = process_map(extract_face_singlefile, lst_params , max_workers=max_workers)
     return result
 
 
