@@ -1,3 +1,17 @@
+import os
+import shutil
+from pathlib import Path
+
+import cv2
+from PIL import Image
+import numpy as np
+
+from operator import itemgetter
+
+# from tqdm import tqdm  # progess bar @# console
+from tqdm.notebook import tqdm
+from tqdm.contrib.concurrent import process_map # multi-process - tqdm>=4.42.0
+
 def extract_faces_from_image(image_array, face_boxes, required_size=(160, 160), convert_2_numpy=True):
     """
     Extract face region from image array
