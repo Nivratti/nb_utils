@@ -136,3 +136,161 @@ class CropImage:
                           left_top_x: right_bottom_x+1]
             dst_img = cv2.resize(img, (out_w, out_h))
         return dst_img
+
+
+def save_out_image(out_image, destfile_abs_path):
+    pil_out_img = Image.fromarray(out_image)
+
+    # check is dest-subfolder exists
+    if not os.path.exists(os.path.dirname(destfile_abs_path)):
+        os.makedirs(os.path.dirname(destfile_abs_path), exist_ok=True)
+
+    pil_out_img.save(destfile_abs_path)
+    return destfile_abs_path
+
+def extract_face_singlefile(params):
+    source_dir = params["source_dir"]
+    file_rel_path = params["file_rel_path"]
+    dest_dir = params["dest_dir"]
+    scale = params["scale"]
+    scale_factor = params["scale_factor"]
+    image_cropper = params["image_cropper"]
+    resize = params["resize"]
+    new_size = params["new_size"]
+    save_resized_separatly = params["save_resized_separatly"]
+
+    sourcefile_abs_path = os.path.join(source_dir, file_rel_path)
+
+    log = {
+        "sourcefile": file_rel_path,
+    }
+
+    # check is already done
+    src_file_name, src_file_extension = os.path.splitext(sourcefile_abs_path)
+    src_txt_filename = f"{src_file_name}_facebox_retina-mobilenet.txt"
+    if not os.path.exists(src_txt_filename):
+        log.update({
+            "code": 100,
+            "info": f"face detection result text file not found."
+        })
+        return log
+
+    # Reading an image in default mode 
+    image = cv2.imread(sourcefile_abs_path) 
+
+    if image is None:
+        log.update({
+            "code": 101,
+            "info": f"problem reading image, it's none."
+        })
+        return log
+
+    # color conversion
+    image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB) 
+
+    try:
+        # read from txt file -- if face deetction done already
+        f = open(src_txt_filename, "r")
+        lines = f.read().splitlines()
+        f.close()
+
+        if not lines:
+            log.update({
+                "code": 102,
+                "info": f"problem reading facebox result line from txt file"
+            })
+            return log
+            
+        detection = lines[0].split(" ")
+        face_box = [int(detection[0]), int(detection[1]), int(detection[2]), int(detection[3])]
+        confidence = float(detection[4])
+    except Exception as e:
+        log.update({
+            "code": 103,
+            "info": f"either problem  with facebox file or may be wrong facebox result"
+        })
+        return log
+        
+    exceptions = []
+    if face_box:
+        # crop_img = img[y:y+h, x:x+w]
+        x, y, w, h = face_box[0], face_box[1], face_box[2], face_box[3]
+
+        if w < 120 or h < 120:
+            log.update({
+                "code": 104,
+                "info": f"detected face box size less than threshold 120x120."
+            })
+            return log
+
+        cropped_img = image_rgb[y:y+h, x:x+w]
+
+        if cropped_img is None or cropped_img.shape[0] < 50 or cropped_img.shape[1] < 50:
+            log.update({
+                "code": 105,
+                "info": f"cropped face is none or less than threshold."
+            })
+            return log
+
+        if scale:
+            w_input = new_size[0]
+            h_input = new_size[1]
+
+            param = {
+                "org_img": image_rgb,
+                "bbox": face_box,
+                "scale": scale_factor,
+                "out_w": w_input,
+                "out_h": h_input,
+                "crop": True,
+            }
+
+            patch_cropped_img = image_cropper.crop(**param)
+            scaled_resized_destfile_abs_path = os.path.join(dest_dir, file_rel_path)
+            save_out_image(patch_cropped_img, scaled_resized_destfile_abs_path)
+        else:
+            if resize and new_size != (-1, -1):
+                resized_img = cv2.resize(cropped_img, new_size)
+                if save_resized_separatly:
+                    resized_destfile_abs_path = os.path.join(separate_dir_save_resized, file_rel_path)
+                    save_out_image(resized_img, resized_destfile_abs_path)
+                else:
+                    resized_destfile_abs_path = os.path.join(dest_dir, file_rel_path)
+                    save_out_image(resized_img, resized_destfile_abs_path)
+        
+        if resize == False or save_resized_separatly == True:
+            destfile_abs_path = os.path.join(dest_dir, file_rel_path)
+            save_out_image(cropped_img, destfile_abs_path)
+
+    return log
+
+
+def extract_faces_recursive_fulldir_multiprocess(
+    source_dir, dest_dir,
+    scale=False, scale_factor=0.0, image_cropper=None,
+    resize=False, new_size=(-1, -1), save_resized_separatly=False, separate_dir_save_resized="", 
+    multiprocess=True, max_workers=5,
+    ):
+    """
+    Extract faces and resize faces if required from images -- all
+    """
+    # list all files
+    lst_files = list_files(source_dir, filter_ext=[".jpg", ".jpeg", ".png"], return_relative_path=True)
+
+    lst_params = []
+    for file_rel_path in lst_files:
+        lst_params.append({
+            "source_dir": source_dir,
+            "file_rel_path": file_rel_path,
+            "dest_dir": dest_dir,
+            "scale": scale,
+            "scale_factor": scale_factor,
+            "image_cropper": image_cropper,
+            "resize": resize,
+            "new_size": new_size,
+            "save_resized_separatly": save_resized_separatly,
+        })
+
+    # map multiple tasks
+    result = process_map(extract_face_singlefile, lst_params , max_workers=10)
+    return result
