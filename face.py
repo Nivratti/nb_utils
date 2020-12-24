@@ -290,6 +290,17 @@ def extract_faces_recursive_fulldir_multiprocess(
     ):
     """
     Extract faces and resize faces if required from images -- all
+    Usage:
+    source_dir  = "/content/train"
+    dest_dir   = "/content/loose_cropped_face__resized_224x224__multi_scaled" # separate_dir_save_resized = "/content/tight_cropped_resized_face__224x224"
+
+
+    results = do_multiscale_face_extraction(
+        source_dir, 
+        dest_dir,
+        lst_scale_factor=[1, 1.5, 2, 2.7, 3, 4], 
+        target_size=(224, 224), max_workers=5
+    )
     """
     # list all files
     lst_files = list_files(source_dir, filter_ext=[".jpg", ".jpeg", ".png"], return_relative_path=True)
