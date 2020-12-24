@@ -35,3 +35,24 @@ def extract_faces_from_image(image_array, face_boxes, required_size=(160, 160), 
             face_images.append(face_image)
 
     return face_images
+
+def highlight_faces(pil_image, face_boxes, outline_color="red"):
+    """
+    Highlight faces using pillow
+    
+    Args:
+        pil_image (object): PiL image object
+        face_boxes (list): list of face boxes
+        outline_color (str, optional): Border color. Defaults to "red".
+    
+    Returns:
+        PIL: Image
+    """
+    draw = ImageDraw.Draw(pil_image)
+    # for each face, draw a rectangle based on coordinates
+    for face_box in face_boxes:
+        x, y, width, height = face_box
+        rect_start = (x, y)
+        rect_end = ((x + width), (y + height))
+        draw.rectangle((rect_start, rect_end), outline=outline_color)
+    return pil_image
