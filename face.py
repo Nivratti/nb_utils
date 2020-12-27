@@ -3,7 +3,7 @@ import shutil
 from pathlib import Path
 
 import cv2
-from PIL import Image
+import PIL
 import numpy as np
 
 from operator import itemgetter
@@ -53,27 +53,44 @@ def extract_faces_from_image(image_array, face_boxes, required_size=(160, 160), 
 
     return face_images
 
-def highlight_faces(pil_image, face_boxes, outline_color="red"):
+def highlight_faces(image, face_boxes, xy_max=True, is_confidence_available=True, width=3, outline_color="red", method="PIL"):
     """
     Highlight faces using pillow
     
     Args:
-        pil_image (object): PiL image object
+        image (object): either PiL image or numpy image object
         face_boxes (list): list of face boxes
         outline_color (str, optional): Border color. Defaults to "red".
     
     Returns:
         PIL: Image
     """
-    draw = ImageDraw.Draw(pil_image)
+    if isinstance(image, np.ndarray):
+        # pil_image = Image.fromarray(numpy_image.astype('uint8'), 'RGB')
+        image = PIL.Image.fromarray(image)
+
+    draw = PIL.ImageDraw.Draw(image)
+
     # for each face, draw a rectangle based on coordinates
     for face_box in face_boxes:
-        x, y, width, height = face_box
-        rect_start = (x, y)
-        rect_end = ((x + width), (y + height))
-        draw.rectangle((rect_start, rect_end), outline=outline_color)
-    return pil_image
+        if is_confidence_available:
+            if xy_max:
+                # x_min, y_min, x_max, y_max
+                x1, y1, x2, y2, confidence = face_box
+            else:
+                x1, y1, width, height, confidence = face_box
+                x2, y2 = (x1 + width), (y1 + height)
+        else:
+            if xy_max:
+                x1, y1, x2, y2 = face_box
+            else:
+                x1, y1, width, height = face_box
+                x2, y2 = (x1 + width), (y1 + height)    
 
+        rect_start = (x1, y1)
+        rect_end = (x2, y2)
+        draw.rectangle((rect_start, rect_end), width=width, outline=outline_color)
+    return image
 
 class CropImage:
     """
