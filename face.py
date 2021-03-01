@@ -10,7 +10,7 @@ from operator import itemgetter
 
 # from tqdm import tqdm  # progess bar @# console
 from tqdm.notebook import tqdm
-from tqdm.contrib.concurrent import process_map # multi-process - tqdm>=4.42.0
+from tqdm.contrib.concurrent import process_map # multi-process - tqdm==4.42.0
 
 from psutil import cpu_count
 
