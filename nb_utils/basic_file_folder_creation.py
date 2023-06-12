@@ -1,53 +1,51 @@
 import os
 import json
-
+from loguru import logger
 from datetime import datetime as dt
-
-# from config.settings import root_path
 
 def add_today_date_in_filename(file_name, format="%Y-%m-%d"):
     """
-    * Add date inside filename
-    * file_util_logger.txt  to file_util_logger_04-12-2018.txt
+    Add today's date to the filename.
+
+    Args:
+        file_name (str): The original file name.
+        format (str): Optional. The format in which the date should be added to the filename. 
+                      Default is "%Y-%m-%d".
+
+    Returns:
+        str: The modified file name with the date appended. in case any code exception it return original filename as it is
+
+    Example:
+        >>> add_today_date_in_filename("file_util_logger.txt")
+        'file_util_logger_2023-06-12.txt'
     """
     try:
         today_date = dt.now().strftime(format)
         
         filename_no_ext, file_extension = os.path.splitext(file_name)
         filename_no_ext = f"{filename_no_ext}-{today_date}"
-        # print("today_date ", today_date)
         
         name_with_date = filename_no_ext + file_extension
-        # print("modified filename :", name_with_date)
         return name_with_date
     
     except Exception as e:
-        print("Error :", e)
+        logger.error("Error:", e)
         return file_name
 
-def generate_folder(folder_name_with_path):
+def generate_today_date_log_folder(root_log_folder_withpath, exist_ok=True):
     """
-    * check is folder exists 
-    * if exists or created  return folder name
-    * if error occurs return false
-    """
-    if not os.path.exists(folder_name_with_path):
-        try:
-            os.makedirs(folder_name_with_path)
-        except Exception as e:
-            print(e)
-            return False
-    return folder_name_with_path
+    Create a log folder with today's date.
 
-def generate_today_date_log_folder(root_log_folder_withpath, exit_ok=True):
-    """
-    create today date log folder
-    
-    Keyword Arguments:
-        root_log_folder {str} -- [description] (default: {"logs"})
-    
+    Args:
+        root_log_folder_withpath (str): The root log folder path.
+        exist_ok (bool): Optional. Default true means no error if folder already exists
+
     Returns:
-        [type] -- [description]
+        str: The path of the created log folder.
+
+    Example:
+        >>> generate_today_date_log_folder("logs")
+        'logs/June-2023/2023-06-12'
     """  
     now = dt.now()
     current_month_year = now.strftime("%B-%Y")
@@ -60,14 +58,22 @@ def generate_today_date_log_folder(root_log_folder_withpath, exit_ok=True):
         *[current_month_year, today_date]
     )
     # make recursive dir
-    os.makedirs(today_log_folder, exist_ok=True)
+    os.makedirs(today_log_folder, exist_ok=exist_ok)
     return today_log_folder
-
 
 def check_create_file_with_all_permission(file_name_with_path):
     """
-    * check is file exists 
-    * If not create file with read write permissions
+    Check if the file exists. If not, create the file with read and write permissions.
+
+    Args:
+        file_name_with_path (str): The file name along with its path.
+
+    Returns:
+        bool: True if the file is created successfully, False if the file already exists.
+
+    Example:
+        >>> check_create_file_with_all_permission("file.txt")
+        True
     """
     if not os.path.exists(file_name_with_path):
         # The default umask is 0o22 which turns off write permission of group and others
@@ -79,13 +85,20 @@ def check_create_file_with_all_permission(file_name_with_path):
     else:
         return False
 
-def generate_filename(extension=".txt", base_folder=None):
+def generate_unique_filename(extension=".txt", base_folder=None):
     """
-    Generate unique filename
+    Generate a unique filename.
 
     Args:
-        extension (str, optional): Extension for filename. Defaults to "txt".
+        extension (str, optional): Extension for the filename. Defaults to ".txt".
         base_folder (str, optional): Base folder path. Defaults to None.
+
+    Returns:
+        str: The generated unique filename.
+
+    Example:
+        >>> generate_unique_filename(".txt", "data/")
+        'data/abcdefgh.txt'
     """
     from text_processing import generate_unique_str
     unique_str = generate_unique_str()
